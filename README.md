@@ -1,10 +1,9 @@
 # **BriefMatch**
-Project web: http://lumahdrv.org/
 
 ## General
 BriefMatch provides a fast GPU optical flow algorithm. The method performs a 
 dense binary feature matching with [BRIEF descriptors](https://www.cs.ubc.ca/~lowe/525/papers/calonder_eccv10.pdf), 
-and using the iterative propagation scheme from (PatchMatch)[https://research.adobe.com/project/patchmatch/]. 
+and using the iterative propagation scheme from [PatchMatch](https://research.adobe.com/project/patchmatch/). 
 The matching is followed by a trilateral filtering step that refines the 
 correspondence field and removes outliers. All matching and filtering 
 computations run on the GPU, which allows for real-time performance.
@@ -46,7 +45,9 @@ $ make
 A set of advanced options can be provided with the CMake flag `ADVANCED_OPTIONS`,
 as such:
 
-`$ cmake -DADVANCED_OPTIONS=1 ../`
+```
+$ cmake -DADVANCED_OPTIONS=1 ../
+```
 
 ## BriefMatch usage
 After compilation of BriefMatch, run `./briefmatch -h` to display available
@@ -67,7 +68,7 @@ Estimated optical flow fields can be output in three different formats:
      format can be read in C++ and Matlab using the flowIO code provided at
      the [Middlebury benchmark webpage](http://vision.middlebury.edu/flow/data/).
   3. 8-bit color png images. The flow directions are encoded by color, and
-     magnitudes by color saturation. The '-vis_max_motion' parameter can be
+     magnitudes by color saturation. The `--vis_max_motion` parameter can be
      used to scale this value to have maximum saturation and clamp all 
      values above.
 
@@ -93,8 +94,7 @@ optical flow, and in order to store the optical flow using the flowIO format
 
 FlowIO uses [imageLib](https://github.com/dscharstein/imageLib) in order to
 handle images. Both flowIO and imageLib are included in `./util`. Please see
-the `./util/imageLib/` for further information and license information on 
-imageLib.
+`./util/imageLib/` for further information and license information on imageLib.
 
 
 ## License
