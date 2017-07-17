@@ -31,8 +31,7 @@ The following libraries are required to compile BriefMatch:
 Compilation is provided through CMake.
 
 #### UNIX
-For an out-of-tree build (recommended) and install, do the
-following:
+For an out-of-tree build:
 
 ```
 $ cd <path_to_briefmatch>
@@ -42,8 +41,7 @@ $ cmake ../
 $ make
 ```
 
-A set of advanced options can be provided with the CMake flag `ADVANCED_OPTIONS`,
-as such:
+A set of advanced options can be provided with the CMake flag `ADVANCED_OPTIONS`:
 
 ```
 $ cmake -DADVANCED_OPTIONS=1 ../
@@ -87,8 +85,8 @@ Following are three examples of different quality/speed trade-offs:
 ## Included libraries
 
 BriefMatch utilizes the [flowIO](http://vision.middlebury.edu/flow/data/)
-code provided on the [Middlebury benchmark](http://vision.middlebury.edu/flow/)
-website. The code is used to colorcode 2D vectors for visualization of the
+code provided on the [Middlebury benchmark website](http://vision.middlebury.edu/flow/). 
+The code is used to colorcode 2D vectors for visualization of the
 optical flow, and in order to store the optical flow using the flowIO format
 (.flo).
 
