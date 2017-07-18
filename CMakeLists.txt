@@ -4,8 +4,6 @@ project (BriefMatch)
 option(ADVANCED_OPTIONS
   "Include advanced options" 0)
 
-set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
-
 if(APPLE)
     set(CMAKE_MACOSX_RPATH 1)
     set(BUILD_WITH_INSTALL_RPATH 1)
@@ -59,7 +57,14 @@ endif( NOT OpenCV_FOUND )
 message( "==============================================================\n" )
 
 # === Target ==================================================================
-include_directories ("${PROJECT_SOURCE_DIR}/kernels" "${PROJECT_SOURCE_DIR}/util" "${PROJECT_SOURCE_DIR}/util/imageLib" "${PROJECT_BINARY_DIR}" "${CUDA_INCLUDE_DIRS}" "${OpenCV_INCLUDE_DIRS}")
+include_directories(
+    "${PROJECT_SOURCE_DIR}/kernels"
+    "${PROJECT_SOURCE_DIR}/util"
+    "${PROJECT_SOURCE_DIR}/util/imageLib"
+    "${PROJECT_BINARY_DIR}"
+    "${CUDA_INCLUDE_DIRS}"
+    "${OpenCV_INCLUDE_DIRS}"
+)
 
 target_link_libraries(image_lib)
 
@@ -78,7 +83,7 @@ target_link_libraries(briefmatch image_lib ${CUDA_LIBRARIES} ${OpenCV_LIBS})
 
 
 # === Config ===================================================================
-configure_file (
+configure_file(
   "${PROJECT_SOURCE_DIR}/config.h.in"
   "${PROJECT_BINARY_DIR}/config.h"
 )

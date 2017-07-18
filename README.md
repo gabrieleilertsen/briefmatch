@@ -41,7 +41,8 @@ $ cmake ../
 $ make
 ```
 
-A set of advanced options can be provided with the CMake flag `ADVANCED_OPTIONS`:
+A set of advanced briefmatch command line options can be provided with the
+CMake flag `ADVANCED_OPTIONS`:
 
 ```
 $ cmake -DADVANCED_OPTIONS=1 ../
@@ -51,10 +52,21 @@ $ cmake -DADVANCED_OPTIONS=1 ../
 After compilation of BriefMatch, run `./briefmatch -h` to display available
 input options. 
 
-Quality/speed are best traded off by changing the up-sampling factor (`--up-sampling-x` and 
-`--up-sampling-y`). Larger up-sampling gives more accurate flow vectors. Also,
-with larger up-sampling there is more benefit in having longer
-feature vectors (`--feature_length`). 
+Quality/speed are best traded off by changing the up-sampling factor (`--up-sampling-x`
+and `--up-sampling-y`). These are used to up-sample image width and height,
+respectively, before performing the matching. Larger up-sampling gives more
+accurate flow vectors, but takes longer time and uses more memory. Furthermore,
+with larger up-sampling there is more benefit in having longer feature vectors
+(`--feature_length`). Additionally, the radius of the BRIEF descriptors can be
+calibrated with `--patch-radius`, which specifies the radius in percent of the
+image diagonal.
+
+To fine-tune the optical flow quality there are a set of advanced options
+(provided by the `ADVANCED_OPTIONS` flag) that can be used to calibrate
+matching and filtering. For example, the properties of the flow refinement
+filtering kernel can be calibrated by tweaking the median filtered image used
+(`--median-size`), and setting the standard deviations of the three terms in
+the trilateral kernel: `--range-epe`, `--range-i` and `--range-spatial`.
 
 ### Output format
 Estimated optical flow fields can be output in three different formats:
@@ -65,13 +77,14 @@ Estimated optical flow fields can be output in three different formats:
   2. Middlebury .flo format, which also stores binary floating points. The
      format can be read in C++ and Matlab using the flowIO code provided at
      the [Middlebury benchmark webpage](http://vision.middlebury.edu/flow/data/).
-  3. 8-bit color png images. The flow directions are encoded by color, and
+  3. 8-bit color png images. The flow directions are encoded by hue, and
      magnitudes by color saturation. The `--vis_max_motion` parameter can be
-     used to scale this value to have maximum saturation and clamp all 
+     used to scale the specified value to have maximum saturation and clamp all 
      values above.
 
 ### Examples
-Following are three examples of different quality/speed trade-offs:
+Following are three examples of different quality/speed trade-offs, that use
+the RubberWhale sequence from the [Middlebury benchmark training data](http://vision.middlebury.edu/flow/data/):
 
 * Faster (lower quality):
   `./briefmatch --input data/RubberWhale/frame%02d.png --frames 7:14 --output output/flow%02d.png --up-sampling-x 1.5 --up-sampling-y 1.5 --feature_length 32`
