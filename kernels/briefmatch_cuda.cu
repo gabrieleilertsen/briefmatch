@@ -43,7 +43,7 @@
 
 __constant__ float const_sampPatch[PATCH_MAX];
 
-__global__ void initRandom(curandState *state, uint sx, uint sy)
+__global__ void initRandom(curandState *state, unsigned int sx, unsigned int sy)
 {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;

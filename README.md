@@ -26,6 +26,7 @@ The following libraries are required to compile BriefMatch:
 
  * [Cuda](https://developer.nvidia.com/cuda-toolkit) for GPU processing.
  * [OpenCV](http://opencv.org/) for image handling.
+ * [libPNG](http://www.libpng.org/pub/png/libpng.html) is needed for image I/O with imageLib (see below).
 
 ## Compilation and installation
 Compilation is provided through CMake.

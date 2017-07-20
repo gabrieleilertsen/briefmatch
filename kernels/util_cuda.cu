@@ -97,8 +97,8 @@ static __global__ void medianFilter1D(const float *Li, float *Lo, int dir, int f
     
     // bubble-sort
     float tmp;
-    for (uint i=0; i<=ks; i++)
-        for (uint j=i+1; j<fsize; j++)
+    for (unsigned int i=0; i<=ks; i++)
+        for (unsigned int j=i+1; j<fsize; j++)
             if (v[i] > v[j])
             {
                 tmp = v[i];
