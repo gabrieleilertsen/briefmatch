@@ -56,6 +56,7 @@ OFPipeline::OFPipeline()
     m_frame = 0; m_stepFrame = 1; m_endFrame = 0, m_startFrame = 0;
     m_timer = m_timerTot = NULL;
     m_bm = NULL; m_bmP = NULL;
+    m_frameData = NULL;
     dev_L = dev_Lin = dev_LPrev = dev_Lin_prev = NULL;
 }
 
@@ -73,6 +74,8 @@ void OFPipeline::clear()
     if (m_timer != NULL) delete m_timer;
     if (m_timerTot != NULL) delete m_timerTot;
     
+    if (m_frameData != NULL) delete[] m_frameData;
+
     CUDA_destructor((void**)&dev_L);
     CUDA_destructor((void**)&dev_LPrev);
     CUDA_destructor((void**)&dev_Lin);
@@ -151,12 +154,26 @@ bool OFPipeline::setParams(int argc, char* argv[])
 
     // Get image size
     char str[500];
-    sprintf(str, m_input.c_str(), m_frame);    
-    Mat I = imread(str, CV_LOAD_IMAGE_GRAYSCALE); //COLOR);
+    sprintf(str, m_input.c_str(), m_frame);
+
+#ifdef USE_OPENCV
+    cv::Mat I = cv::imread(str, CV_LOAD_IMAGE_GRAYSCALE); //COLOR);
     if(!I.data )
         throw ParserException(std::string("Input image '" + std::string(str) + "' not found.").c_str());
-
     m_sx_in = I.cols; m_sy_in = I.rows;
+#else
+    CByteImage I;
+    try
+    {
+        ReadImage(I, str);
+        m_sx_in = I.Shape().width; m_sy_in = I.Shape().height;
+    }
+    catch (CError &e)
+    {
+        throw BriefMatchException(std::string("Cannot read image file.\n\t" + std::string(e.message)).c_str());
+    }
+#endif
+
     if (ux < 0.1f) ux = 2.740f;
     if (uy < 0.1f) uy = 3.052f;
     m_sx = ux*m_sx_in;
@@ -198,6 +215,8 @@ void OFPipeline::setup()
     m_timer = new CudaTimer;
     m_timerTot = new CudaTimer;
     
+    m_frameData = new float[m_sx_in*m_sy_in];
+
     // allocate gpu image arrays
     CUDA_constructor((void**)&dev_Lin,      m_sx_in*m_sy_in*sizeof(float));
     CUDA_constructor((void**)&dev_Lin_prev, m_sx_in*m_sy_in*sizeof(float));
@@ -242,15 +261,36 @@ bool OFPipeline::processFrame()
     
     // Read from disc
     m_timer->start();
-    Mat I = imread(str, CV_LOAD_IMAGE_GRAYSCALE);
+#ifdef USE_OPENCV
+    cv::Mat I = cv::imread(str, CV_LOAD_IMAGE_GRAYSCALE);
     if(!I.data )
         throw BriefMatchException(std::string("Input image '" + std::string(str) + "' not found.").c_str());
     I.convertTo(I, CV_32FC1);
+    uchar *data = I.data;
+#else
+    float* data;
+    CByteImage I;
+    try
+    {
+        ReadImage(I, str);
+        for (unsigned int y = 0; y < m_sy_in; y++)
+            for (unsigned int x = 0; x < m_sx_in; x++)
+            {
+                //float *pix = &m_flow.Pixel(x, y, 0);
+                m_frameData[x+y*m_sx_in] = I.Pixel(x,y,0);
+            }
+        data = m_frameData;
+    }
+    catch (CError &e)
+    {
+        throw BriefMatchException(std::string("Cannot read image file.\n\t" + std::string(e.message)).c_str());
+    }
+#endif
     int pos = snprintf(timings, 500, "\tRead:\t\t\t%0.2fms", m_timer->stop());
     
     // Copy to GPU memory
     m_timer->start();
-    CUDA_copy((void*)dev_Lin, (void*)(I.data), m_sx_in*m_sy_in*sizeof(float), HOST_TO_DEVICE);
+    CUDA_copy((void*)dev_Lin, (void*)data, m_sx_in*m_sy_in*sizeof(float), HOST_TO_DEVICE);
     pos += snprintf(timings+pos, 500, "\n\tCopy to GPU:\t\t%0.2fms", m_timer->stop());
     
     // Up-sampling

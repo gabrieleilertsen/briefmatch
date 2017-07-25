@@ -4,19 +4,25 @@ project (BriefMatch)
 option(ADVANCED_OPTIONS
   "Include advanced options" 0)
 
-if(APPLE)
+option(USE_OPENCV
+  "Use OpenCV for a more flexible and faster image input" 1)
+
+if (APPLE)
     set(CMAKE_MACOSX_RPATH 1)
     set(BUILD_WITH_INSTALL_RPATH 1)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
-endif()
+endif ()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wno-long-long -pedantic")
-endif()
+endif ()
 
 # === Search for dependencies ==================================================
 find_package(CUDA REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(PNG REQUIRED)
+if (USE_OPENCV)
+    find_package(OpenCV)
+endif ()
 
 # === Add imageLib library ===================================================
 add_library(image_lib SHARED
@@ -40,19 +46,33 @@ else( NOT CUDA_FOUND )
 
     # NVCC options
     set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-    set(CUDA_NVCC_FLAGS
-        ${CUDA_NVCC_FLAGS};
-        -Xcompiler -fPIC -Wno-deprecated-gpu-targets
-    )
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -Xcompiler -fPIC -Wno-deprecated-gpu-targets -use_fast_math" )
+    else()
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -Wno-deprecated-gpu-targets -use_fast_math" )
+    endif()
 endif( NOT CUDA_FOUND )
 
+# === libPNG ==================================================================
+message( " * libPNG" )
+if( NOT PNG_FOUND )
+    message( WARNING "libPNG not found." )
+else( NOT PNG_FOUND )
+    message( "\tlibPNG version: ${PNG_VERSION_STRING}" )
+    message( "\tinclude: ${PNG_INCLUDE_DIRS}\n\tlibs: ${PNG_LIBRARIES}" )
+endif( NOT PNG_FOUND )
+
 # === OpenCV ==================================================================
-message( " * OpenCV" )
-if( NOT OpenCV_FOUND )
-    message( WARNING "OpenCV not found." )
-else( NOT OpenCV_FOUND )
-    message( "\tinclude: ${OpenCV_INCLUDE_DIRS}\n\tlibs: ${OpenCV_LIBS}" )
-endif( NOT OpenCV_FOUND )
+if (USE_OPENCV)
+    message( " * OpenCV" )
+    if( NOT OpenCV_FOUND )
+        message( WARNING "OpenCV not found." )
+        message( "\tBriefMatch will be compiled without OpenCV support." )
+        set( USE_OPENCV 0 )
+    else( NOT OpenCV_FOUND )
+        message( "\tinclude: ${OpenCV_INCLUDE_DIRS}\n\tlibs: ${OpenCV_LIBS}" )
+    endif( NOT OpenCV_FOUND )
+endif ()
 
 message( "==============================================================\n" )
 
@@ -63,10 +83,16 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/util/imageLib"
     "${PROJECT_BINARY_DIR}"
     "${CUDA_INCLUDE_DIRS}"
-    "${OpenCV_INCLUDE_DIRS}"
+    "${PNG_INCLUDE_DIRS}"
 )
 
-target_link_libraries(image_lib)
+if (USE_OPENCV)
+    include_directories(
+        "${OpenCV_INCLUDE_DIRS}"
+    )
+endif ()
+
+target_link_libraries(image_lib ${PNG_LIBRARIES})
 
 cuda_add_executable(briefmatch 
     ${PROJECT_SOURCE_DIR}/main.cpp
@@ -79,7 +105,11 @@ cuda_add_executable(briefmatch
     ${PROJECT_SOURCE_DIR}/util/flowIO.cpp
 )
 
-target_link_libraries(briefmatch image_lib ${CUDA_LIBRARIES} ${OpenCV_LIBS})
+if (USE_OPENCV)
+    target_link_libraries(briefmatch image_lib ${CUDA_LIBRARIES} ${PNG_LIBRARIES} ${OpenCV_LIBS})
+else  (USE_OPENCV)
+    target_link_libraries(briefmatch image_lib ${CUDA_LIBRARIES} ${PNG_LIBRARIES})
+endif ()
 
 
 # === Config ===================================================================

@@ -56,11 +56,12 @@
 #include "cuda_gl_interop.h"
 
 #include "util_cuda.h"
-#include <opencv2/opencv.hpp>
 #include "briefmatch.h"
 #include "arg_parser.h"
 
-using namespace cv;
+#ifdef USE_OPENCV
+#include <opencv2/opencv.hpp>
+#endif
 
 class OFPipeline
 {
@@ -88,6 +89,8 @@ private:
     
     BriefMatch *m_bm;
     BMParams *m_bmP;
+
+    float *m_frameData;
     
     // GPU arrays
     float *dev_L, *dev_Lin, *dev_LPrev, *dev_Lin_prev;
