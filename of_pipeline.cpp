@@ -92,6 +92,7 @@ bool OFPipeline::setParams(int argc, char* argv[])
     m_bmP = new BMParams;
     std::string frames;
     float ux = 0, uy = 0;
+    float patchRad = 3.0f, sigmaRad = 0.025f, fsizeRad = 1.0f, sSRad = 0.85f;
 
     // Application usage info
     std::string info = std::string("briefmatch -- Computes the optical flow of a sequence of frames\n\n") +
@@ -108,19 +109,19 @@ bool OFPipeline::setParams(int argc, char* argv[])
     argHolder.add(&m_bmP->maxmot,            "--vis-max-motion",     "-mm",  "Max-motion clamping, in conversion of flow field to color encoding", 0.0f, 1e10f);
     argHolder.add(&m_verbose,                "--verbose",            "-v",   "Verbose mode\n");
     argHolder.add(&m_bmP->N,                 "--feature-length",     "-fl",  "Length of BRIEF binary feature vectors", (unsigned int)(2), (unsigned int)(PATCH_MAX/4));
-    argHolder.add(&m_bmP->patchRad,          "--patch-radius",       "-pr",  "BRIEF patch radius (in percent of image diagonal)", 0.0f, 1e10f);
+    argHolder.add(&patchRad,                 "--patch-radius",       "-pr",  "BRIEF patch radius (in percent of upsampled image diagonal)", 0.0f, 100.0f);
     argHolder.add(&ux,                       "--up-sampling-x",      "-ux",  "Up-sampling factor for image width", 1.0f, 100.0f);
     argHolder.add(&uy,                       "--up-sampling-y",      "-uy",  "Up-sampling factor for image height\n", 1.0f, 100.0f);
 
 #ifdef ADVANCED_OPTIONS
     argHolder.addInfo("Advanced options:\n");
-    argHolder.add(&m_bmP->sigma,             "--sigma-downsampling", "-ss",  "Down-sampling filter size (gaussian filter, followed by NN sampling)", 0.0f, floor((CONST_KERNEL_SIZE - 1.0f)/2.0f)/3.0f);
+    argHolder.add(&sigmaRad,                 "--sigma-downsampling", "-ss",  "Down-sampling filter size (in percent of image diagonal)", 0.0f, 100.0f);
     argHolder.add(&m_bmP->iterations,        "--iterations",         "-it",  "Number of iterations in neighbor search", (unsigned int)(0), (unsigned int)(1e2));
     argHolder.add(&m_bmP->jfMax,             "--jf-max",             "-jm",  "Max distance of jump flooding scheme (should be in multiples of 2)", (unsigned int)(2), (unsigned int)(1e4));
-    argHolder.add(&m_bmP->fsize,             "--median-size",        "-ms",  "Median filter size in flow refinement filtering", (unsigned int)(0), (unsigned int)(MAX_MEDIAN));
+    argHolder.add(&fsizeRad,                 "--median-size",        "-ms",  "Median filter size in flow refinement filtering (in percent of image diagonal)", 0.0f, 100.0f);
     argHolder.add(&m_bmP->sEPE,              "--range-epe",          "-re",  "Sigma for correspondence field EPE filtering term", 0.0f, 1e10f);
     argHolder.add(&m_bmP->sI,                "--range-i",            "-ri",  "Sigma for input image filtering term", 0.0f, 1e10f);
-    argHolder.add(&m_bmP->sS,                "--range-spatial",      "-rs",  "Sigma for spatial filering size\n", 0.0f, 1e10f);
+    argHolder.add(&sSRad,                    "--range-spatial",      "-rs",  "Sigma for spatial filering size (in percent of image diagonal)\n", 0.0f, 100.0f);
     argHolder.add(&m_flowGT,                 "--flow-gt",            "-gt",  "Ground truth optical flow");
 #endif
 
@@ -183,7 +184,10 @@ bool OFPipeline::setParams(int argc, char* argv[])
     m_bmP->sx_in = m_sx_in;
     m_bmP->sy_in = m_sy_in;
 
-    m_bmP->patchArea = 0.01f * m_bmP->patchRad * sqrt(m_sx*m_sx+m_sy*m_sy);
+    m_bmP->patchArea = 0.01f * patchRad * sqrt(m_sx*m_sx+m_sy*m_sy);
+    m_bmP->sigma = 0.01f * sigmaRad * sqrt(m_sx*m_sx+m_sy*m_sy);
+    m_bmP->fsize = 2*round(0.005f * fsizeRad * sqrt(m_sx_in*m_sx_in+m_sy_in*m_sy_in))+1;
+    m_bmP->sS = 0.01f * sSRad * sqrt(m_sx_in*m_sx_in+m_sy_in*m_sy_in);
 
     if (m_flowGT.size() > 1) m_doPrintError = 1;
 

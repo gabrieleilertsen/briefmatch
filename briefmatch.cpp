@@ -95,15 +95,17 @@ void BriefMatch::setup()
         throw BriefMatchException(m);
     }
 
+    float h = sqrt(m_params.sx*m_params.sx+m_params.sy*m_params.sy);
+    float h_in = sqrt(m_params.sx_in*m_params.sx_in+m_params.sy_in*m_params.sy_in);
     fprintf(stderr, "BriefMatch options:\n");
     fprintf(stderr, "--------------------------------------------------------\n");
     fprintf(stderr, "BRIEF settings:\n");
     fprintf(stderr, "\tFeature length:            %d\n", m_params.N);
-    fprintf(stderr, "\tPatch radius:              %0.1f pixels (%0.2f%%)\n", m_params.patchArea, m_params.patchRad);
+    fprintf(stderr, "\tPatch radius:              %0.1f pixels (%0.4f%%)\n", m_params.patchArea, 100*m_params.patchArea/h);
     fprintf(stderr, "\tUp-sampling factor (x):    %0.4f\n", float(m_params.sx)/m_params.sx_in);
     fprintf(stderr, "\tUp-sampling factor (y):    %0.4f\n", float(m_params.sy)/m_params.sy_in);
     fprintf(stderr, "\tUp-sampling resolution:    %dx%d\n", m_params.sx, m_params.sy);
-    fprintf(stderr, "\tDown-sampling sigma:       %0.4f\n", m_params.sigma);
+    fprintf(stderr, "\tDown-sampling sigma:       %0.4f pixels (%0.4f%%)\n", m_params.sigma, 100*m_params.sigma/h);
     fprintf(stderr, "\nCorrespondence field search:\n");
     fprintf(stderr, "\tIterations:                %d\n", m_params.iterations);
     fprintf(stderr, "\tJump flooding max:         %d\n", m_params.jfMax);
@@ -113,10 +115,10 @@ void BriefMatch::setup()
     else
         fprintf(stderr, "No\n");
     fprintf(stderr, "\nCross-trilateral flow refinement filtering:\n");
-    fprintf(stderr, "\tMedian filter size:        %d\n", m_params.fsize);
+    fprintf(stderr, "\tMedian filter size:        %d pixels (%0.4f%%)\n", m_params.fsize, 100*m_params.fsize/h_in);
     fprintf(stderr, "\tSigma EPE:                 %0.4f\n", m_params.sEPE);
     fprintf(stderr, "\tSigma image:               %0.4f\n", m_params.sI);
-    fprintf(stderr, "\tSigma spatial:             %0.4f\n", m_params.sS);
+    fprintf(stderr, "\tSigma spatial:             %0.4f pixels (%0.4f%%)\n", m_params.sS, 100*m_params.sS/h_in);
     fprintf(stderr, "--------------------------------------------------------\n\n");
     
     boost::mt19937 *rng = new boost::mt19937();

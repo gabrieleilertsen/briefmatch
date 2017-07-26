@@ -77,7 +77,6 @@ struct BMParams
         fsize = 13;
         N = 128;              // length of binary feature vector
         patchArea = 75;
-        patchRad = 3.0f;
         sEPE = 0.4f;
         sI = 0.1f;
         sS = 6.0f;
@@ -85,7 +84,7 @@ struct BMParams
     }
     
     unsigned int sx, sy, sx_in, sy_in, N, iterations, jfMax, P, fsize;
-    float patchArea, patchRad, sigma, sEPE, sI, sS, maxmot;
+    float patchArea, sigma, sEPE, sI, sS, maxmot;
     bool doubleProp, filter, tInit;
 };
 
